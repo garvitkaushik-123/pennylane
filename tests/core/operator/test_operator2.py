@@ -1268,6 +1268,30 @@ class TestHash:
         op2 = DynOp(0.5 + 1e-12, wires=0)
         assert hash(op1) == hash(op2)
 
+    def test_large_arrays_different_hash(self):
+        """Test that arrays with more than 1000 elements that only differ in the part numpy
+        abbreviates when printing produce different hashes."""
+        mat1 = np.eye(32)
+        mat1[8:24, 8:24] = np.random.default_rng(0).normal(size=(16, 16))
+        mat2 = mat1.T
+        assert not np.allclose(mat1, mat2)
+
+        op1 = qp.QubitUnitary(mat1, wires=range(5))
+        op2 = qp.QubitUnitary(mat2, wires=range(5))
+        assert hash(op1) != hash(op2)
+        assert hash(op1) == hash(qp.QubitUnitary(mat1.copy(), wires=range(5)))
+
+    def test_large_arrays_different_process_data(self):
+        """Test the same for the data processed by ``_process_data``."""
+        # pylint: disable=import-outside-toplevel
+        from pennylane.core.operator.base import _process_data
+
+        mat1 = np.eye(32)
+        mat1[8:24, 8:24] = np.random.default_rng(0).normal(size=(16, 16))
+        op1 = qp.QubitUnitary(mat1, wires=range(5))
+        op2 = qp.QubitUnitary(mat1.T, wires=range(5))
+        assert _process_data(op1) != _process_data(op2)
+
     def test_different_args_hash(self):
         """Test that differing arguments produces different hashes."""
         op1 = FullOp(phi=0.5, static="a", hybrid=[0, 1], wires=0)

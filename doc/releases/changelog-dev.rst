@@ -2330,6 +2330,12 @@ Documentation 📝
 Bug fixes 🐛
 ~~~~~~~~~~~~
 
+* Fixed a bug where the hash of an operator ignored most of the data of large arrays
+  (more than 1000 elements), as numpy abbreviates them when converting to a string. Distinct
+  operators, such as two large ``QubitUnitary`` gates, could collide, and the execution cache
+  could silently return the result of another circuit.
+  `(#10460) <https://github.com/PennyLaneAI/pennylane/issues/10460>`__
+
 * Fixed tracer leaks when passing traced work-wire labels to :func:`~.ctrl`
   applied to a callable during program capture. Concrete work-wire labels retain
   their existing behaviour.

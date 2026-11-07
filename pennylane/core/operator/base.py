@@ -184,6 +184,18 @@ def create_operator_primitive(
 # =============================================================================
 
 
+_NUMPY_PRINT_THRESHOLD = np.get_printoptions()["threshold"]
+
+
+def _hashable_array_key(d):
+    """Return ``d`` unchanged, unless it is an array large enough for ``str`` to abbreviate
+    it, in which case a key built from its raw contents is returned instead."""
+    if getattr(d, "size", 0) > _NUMPY_PRINT_THRESHOLD:
+        arr = np.asarray(qp.math.toarray(d))
+        return (arr.shape, str(arr.dtype), arr.tobytes())
+    return d
+
+
 def _process_data(op):
     def _mod_and_round(x, mod_val):
         if mod_val is None:
@@ -198,7 +210,12 @@ def _process_data(op):
     else:
         mod_val = None
 
-    return str([id(d) if is_tracer(d) else _mod_and_round(d, mod_val) for d in op.data])
+    return str(
+        [
+            id(d) if is_tracer(d) else _hashable_array_key(_mod_and_round(d, mod_val))
+            for d in op.data
+        ]
+    )
 
 
 # pylint: disable=abstract-method

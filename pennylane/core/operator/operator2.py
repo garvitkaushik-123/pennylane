@@ -61,7 +61,7 @@ from pennylane.typing import (
 )
 from pennylane.wires import AbstractQubit, Wires, WiresLike
 
-from .base import _UNSET_BATCH_SIZE, AbstractOperator, Operator
+from .base import _UNSET_BATCH_SIZE, AbstractOperator, Operator, _hashable_array_key
 from .meta import OperatorMeta
 from .utils import abstractify
 
@@ -2205,7 +2205,7 @@ def _canonicalize_dynamic(d, op_name=None) -> Hashable:
         return hash(d)
 
     # We stringify the data because arrays are unhashable
-    return str(id(d) if math.is_tracer(d) else _mod_and_round(d, mod_val))
+    return str(id(d) if math.is_tracer(d) else _hashable_array_key(_mod_and_round(d, mod_val)))
 
 
 def _is_hash_leaf(l) -> bool:
